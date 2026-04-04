@@ -67,9 +67,16 @@ public class PedidoResponseDTO {
     @Schema(description = "Indica se o pedido está atrasado: status PENDENTE com data de entrega no passado. Calculado, não armazenado no banco", example = "false")
     private boolean atrasado;
 
+    @Schema(description = "Total já pago pelo cliente. Se pagamento integral: igual ao valorPedido. Se adiantamento: igual ao valorAdiantamento", example = "150.00")
+    private BigDecimal totalPagamentos;
+
     public static PedidoResponseDTO de(Pedido pedido) {
         boolean atrasado = pedido.getStatusPedido() == StatusPedido.PENDENTE
                 && pedido.getDataHoraEntrega().isBefore(LocalDateTime.now());
+
+        BigDecimal totalPagamentos = pedido.isPagamentoIntegral()
+                ? pedido.getValorPedido()
+                : (pedido.getValorAdiantamento() != null ? pedido.getValorAdiantamento() : BigDecimal.ZERO);
 
         return new PedidoResponseDTO(
                 pedido.getId(),
@@ -88,7 +95,8 @@ public class PedidoResponseDTO {
                 pedido.getCadastradoPor().getNome(),
                 pedido.getDataUltimaAlteracao(),
                 pedido.getAlteradoPor().getNome(),
-                atrasado
+                atrasado,
+                totalPagamentos
         );
     }
 }

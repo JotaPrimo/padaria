@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+
+import java.util.List;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -156,6 +158,21 @@ public class PedidoController {
     })
     public ResponseEntity<ResponseApi<DashboardResponseDTO>> dashboard() {
         return ResponseEntity.ok(ResponseApi.ok("Indicadores calculados com sucesso.", IPedidoService.dashboard()));
+    }
+
+    @GetMapping("/exportar")
+    @Operation(
+        summary = "Exportar pedidos",
+        description = "Retorna todos os pedidos filtrados sem paginação, incluindo o campo totalPagamentos. Destinado ao frontend para geração de CSV ou PDF."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Dados retornados com sucesso"),
+        @ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true)))
+    })
+    public ResponseEntity<ResponseApi<List<PedidoResponseDTO>>> exportar(
+        @ModelAttribute PedidoFiltroDTO filtro
+    ) {
+        return ResponseEntity.ok(ResponseApi.ok("Dados exportados com sucesso.", IPedidoService.exportar(filtro)));
     }
 
     private Usuario resolverUsuario(UserDetails userDetails) {

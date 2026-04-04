@@ -3,6 +3,7 @@ package padaria.com.example.padaria.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import padaria.com.example.padaria.dto.pedido.DashboardResponseDTO;
@@ -10,6 +11,8 @@ import padaria.com.example.padaria.dto.pedido.PedidoCancelamentoDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoFiltroDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoRequestDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoResponseDTO;
+
+import java.util.List;
 import padaria.com.example.padaria.dto.pedido.PedidoUpdateDTO;
 import padaria.com.example.padaria.entity.Pedido;
 import padaria.com.example.padaria.entity.Usuario;
@@ -125,6 +128,15 @@ public class PedidoServiceImpl implements IPedidoService {
         long pagamentoPendente = pedidoRepository.countPagamentoPendente(StatusPedido.CANCELADO);
 
         return new DashboardResponseDTO(pedidosHoje, pedidosSemana, pedidosMes, pagamentoPendente);
+    }
+
+    @Override
+    public List<PedidoResponseDTO> exportar(PedidoFiltroDTO filtro) {
+        var sort = Sort.by(Sort.Direction.ASC, "dataHoraEntrega");
+        return pedidoRepository.findAll(PedidoFilterSpec.comFiltros(filtro), sort)
+                .stream()
+                .map(PedidoResponseDTO::de)
+                .toList();
     }
 
     private Pedido buscarOuLancar(Long id) {
