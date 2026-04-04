@@ -1,9 +1,11 @@
 package padaria.com.example.padaria.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -17,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import padaria.com.example.padaria.dto.ResponseApi;
 import padaria.com.example.padaria.security.JwtAuthFilter;
 import padaria.com.example.padaria.security.UserDetailsServiceImpl;
 
@@ -40,6 +43,22 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/usuarios").authenticated()
                         .requestMatchers("/api/v1/usuarios/**").hasRole("ADMINISTRADOR")
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(401);
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            var mapper = new ObjectMapper();
+                            response.getWriter().write(
+                                    mapper.writeValueAsString(ResponseApi.erro("Não autenticado. Forneça um token válido.")));
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(403);
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            var mapper = new ObjectMapper();
+                            response.getWriter().write(
+                                    mapper.writeValueAsString(ResponseApi.erro("Acesso negado. Permissão insuficiente.")));
+                        })
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

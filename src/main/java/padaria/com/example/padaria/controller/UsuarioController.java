@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import padaria.com.example.padaria.dto.ApiResponse;
+import padaria.com.example.padaria.dto.ResponseApi;
 import padaria.com.example.padaria.dto.usuario.UsuarioRequestDTO;
 import padaria.com.example.padaria.dto.usuario.UsuarioResponseDTO;
 import padaria.com.example.padaria.dto.usuario.UsuarioUpdateDTO;
@@ -40,11 +41,11 @@ public class UsuarioController {
         description = "Retorna a lista completa de usuários cadastrados no sistema, incluindo ativos e inativos. Acessível por qualquer usuário autenticado."
     )
     @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true)))
+        @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
+        @ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true)))
     })
-    public ResponseEntity<ApiResponse<List<UsuarioResponseDTO>>> listarTodos() {
-        return ResponseEntity.ok(ApiResponse.ok("Usuários listados com sucesso.", usuarioService.listarTodos()));
+    public ResponseEntity<ResponseApi<List<UsuarioResponseDTO>>> listarTodos() {
+        return ResponseEntity.ok(ResponseApi.ok("Usuários listados com sucesso.", usuarioService.listarTodos()));
     }
 
     @GetMapping("/{id}")
@@ -53,16 +54,16 @@ public class UsuarioController {
         description = "Retorna os dados de um usuário específico pelo seu identificador. Requer perfil ADMINISTRADOR."
     )
     @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Usuário encontrado"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sem permissão — requer perfil ADMINISTRADOR", content = @Content(schema = @Schema(hidden = true))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Usuário não encontrado para o ID informado", content = @Content(schema = @Schema(hidden = true)))
+        @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
+        @ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "403", description = "Sem permissão — requer perfil ADMINISTRADOR", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "404", description = "Usuário não encontrado para o ID informado", content = @Content(schema = @Schema(hidden = true)))
     })
-    public ResponseEntity<ApiResponse<UsuarioResponseDTO>> buscarPorId(
+    public ResponseEntity<ResponseApi<UsuarioResponseDTO>> buscarPorId(
         @Parameter(description = "Identificador único do usuário", example = "1", required = true)
         @PathVariable Long id
     ) {
-        return ResponseEntity.ok(ApiResponse.ok("Usuário encontrado.", usuarioService.buscarPorId(id)));
+        return ResponseEntity.ok(ResponseApi.ok("Usuário encontrado.", usuarioService.buscarPorId(id)));
     }
 
     @PostMapping
@@ -71,14 +72,14 @@ public class UsuarioController {
         description = "Cria um novo usuário no sistema com perfil FUNCIONARIO ou ADMINISTRADOR. O email deve ser único. Requer perfil ADMINISTRADOR."
     )
     @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Dados inválidos ou email já cadastrado", content = @Content(schema = @Schema(hidden = true))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sem permissão — requer perfil ADMINISTRADOR", content = @Content(schema = @Schema(hidden = true)))
+        @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos ou email já cadastrado", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "403", description = "Sem permissão — requer perfil ADMINISTRADOR", content = @Content(schema = @Schema(hidden = true)))
     })
-    public ResponseEntity<ApiResponse<UsuarioResponseDTO>> criar(@RequestBody @Valid UsuarioRequestDTO dto) {
+    public ResponseEntity<ResponseApi<UsuarioResponseDTO>> criar(@RequestBody @Valid UsuarioRequestDTO dto) {
         UsuarioResponseDTO criado = usuarioService.criar(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok("Usuário criado com sucesso.", criado));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ResponseApi.ok("Usuário criado com sucesso.", criado));
     }
 
     @PutMapping("/{id}")
@@ -87,18 +88,18 @@ public class UsuarioController {
         description = "Atualiza os dados de um usuário existente. A senha é opcional — se não informada, permanece inalterada. Requer perfil ADMINISTRADOR."
     )
     @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Dados inválidos ou email já em uso por outro usuário", content = @Content(schema = @Schema(hidden = true))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sem permissão — requer perfil ADMINISTRADOR", content = @Content(schema = @Schema(hidden = true))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Usuário não encontrado para o ID informado", content = @Content(schema = @Schema(hidden = true)))
+        @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos ou email já em uso por outro usuário", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "403", description = "Sem permissão — requer perfil ADMINISTRADOR", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "404", description = "Usuário não encontrado para o ID informado", content = @Content(schema = @Schema(hidden = true)))
     })
-    public ResponseEntity<ApiResponse<UsuarioResponseDTO>> atualizar(
+    public ResponseEntity<ResponseApi<UsuarioResponseDTO>> atualizar(
         @Parameter(description = "Identificador único do usuário", example = "1", required = true)
         @PathVariable Long id,
         @RequestBody @Valid UsuarioUpdateDTO dto
     ) {
-        return ResponseEntity.ok(ApiResponse.ok("Usuário atualizado com sucesso.", usuarioService.atualizar(id, dto)));
+        return ResponseEntity.ok(ResponseApi.ok("Usuário atualizado com sucesso.", usuarioService.atualizar(id, dto)));
     }
 
     @PatchMapping("/{id}/inativar")
@@ -107,18 +108,18 @@ public class UsuarioController {
         description = "Desativa o acesso de um usuário ao sistema. O usuário não é excluído — seus dados são preservados e ele não conseguirá mais realizar login. Requer perfil ADMINISTRADOR."
     )
     @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Usuário inativado com sucesso"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Usuário já está inativo", content = @Content(schema = @Schema(hidden = true))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sem permissão — requer perfil ADMINISTRADOR", content = @Content(schema = @Schema(hidden = true))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Usuário não encontrado para o ID informado", content = @Content(schema = @Schema(hidden = true)))
+        @ApiResponse(responseCode = "200", description = "Usuário inativado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Usuário já está inativo", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "403", description = "Sem permissão — requer perfil ADMINISTRADOR", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "404", description = "Usuário não encontrado para o ID informado", content = @Content(schema = @Schema(hidden = true)))
     })
-    public ResponseEntity<ApiResponse<Void>> inativar(
+    public ResponseEntity<ResponseApi<Void>> inativar(
         @Parameter(description = "Identificador único do usuário", example = "1", required = true)
         @PathVariable Long id
     ) {
         usuarioService.inativar(id);
-        return ResponseEntity.ok(ApiResponse.ok("Usuário inativado com sucesso."));
+        return ResponseEntity.ok(ResponseApi.ok("Usuário inativado com sucesso."));
     }
 
     @PatchMapping("/{id}/reativar")
@@ -127,17 +128,17 @@ public class UsuarioController {
         description = "Restaura o acesso de um usuário previamente inativado. O usuário voltará a conseguir realizar login no sistema. Requer perfil ADMINISTRADOR."
     )
     @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Usuário reativado com sucesso"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Usuário já está ativo", content = @Content(schema = @Schema(hidden = true))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Sem permissão — requer perfil ADMINISTRADOR", content = @Content(schema = @Schema(hidden = true))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Usuário não encontrado para o ID informado", content = @Content(schema = @Schema(hidden = true)))
+        @ApiResponse(responseCode = "200", description = "Usuário reativado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Usuário já está ativo", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "403", description = "Sem permissão — requer perfil ADMINISTRADOR", content = @Content(schema = @Schema(hidden = true))),
+        @ApiResponse(responseCode = "404", description = "Usuário não encontrado para o ID informado", content = @Content(schema = @Schema(hidden = true)))
     })
-    public ResponseEntity<ApiResponse<Void>> reativar(
+    public ResponseEntity<ResponseApi<Void>> reativar(
         @Parameter(description = "Identificador único do usuário", example = "1", required = true)
         @PathVariable Long id
     ) {
         usuarioService.reativar(id);
-        return ResponseEntity.ok(ApiResponse.ok("Usuário reativado com sucesso."));
+        return ResponseEntity.ok(ResponseApi.ok("Usuário reativado com sucesso."));
     }
 }

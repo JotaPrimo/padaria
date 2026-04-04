@@ -10,7 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
-import padaria.com.example.padaria.dto.ApiResponse;
+import padaria.com.example.padaria.dto.ResponseApi;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,51 +39,51 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NegocioException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNegocio(NegocioException ex) {
+    public ResponseEntity<ResponseApi<Void>> handleNegocio(NegocioException ex) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.erro(ex.getMessage()));
+                .body(ResponseApi.erro(ex.getMessage()));
     }
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNaoEncontrado(RecursoNaoEncontradoException ex) {
+    public ResponseEntity<ResponseApi<Void>> handleNaoEncontrado(RecursoNaoEncontradoException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.erro(ex.getMessage()));
+                .body(ResponseApi.erro(ex.getMessage()));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleRotaNaoEncontrada(NoResourceFoundException ex) {
+    public ResponseEntity<ResponseApi<Void>> handleRotaNaoEncontrada(NoResourceFoundException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.erro("O endpoint '%s' não existe.".formatted(ex.getResourcePath())));
+                .body(ResponseApi.erro("O endpoint '%s' não existe.".formatted(ex.getResourcePath())));
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMetodoNaoPermitido(HttpRequestMethodNotSupportedException ex) {
+    public ResponseEntity<ResponseApi<Void>> handleMetodoNaoPermitido(HttpRequestMethodNotSupportedException ex) {
         return ResponseEntity
                 .status(HttpStatus.METHOD_NOT_ALLOWED)
-                .body(ApiResponse.erro("O método '%s' não é suportado para este endpoint.".formatted(ex.getMethod())));
+                .body(ResponseApi.erro("O método '%s' não é suportado para este endpoint.".formatted(ex.getMethod())));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAcessoNegado(AccessDeniedException ex) {
+    public ResponseEntity<ResponseApi<Void>> handleAcessoNegado(AccessDeniedException ex) {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.erro("Acesso negado."));
+                .body(ResponseApi.erro("Acesso negado."));
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNaoAutenticado(AuthenticationException ex) {
+    public ResponseEntity<ResponseApi<Void>> handleNaoAutenticado(AuthenticationException ex) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.erro("Credenciais inválidas."));
+                .body(ResponseApi.erro("Credenciais inválidas."));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleErroGenerico(Exception ex) {
+    public ResponseEntity<ResponseApi<Void>> handleErroGenerico(Exception ex) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.erro("Ocorreu um erro interno. Tente novamente mais tarde."));
+                .body(ResponseApi.erro("Ocorreu um erro interno. Tente novamente mais tarde."));
     }
 }

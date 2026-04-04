@@ -3,6 +3,7 @@ package padaria.com.example.padaria.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import padaria.com.example.padaria.dto.ApiResponse;
 import padaria.com.example.padaria.dto.auth.LoginRequestDTO;
 import padaria.com.example.padaria.dto.auth.LoginResponseDTO;
 import padaria.com.example.padaria.service.AuthService;
@@ -41,15 +41,15 @@ public class AuthController {
             """
     )
     @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Login realizado com sucesso. Token JWT retornado no campo `data.token`",
+        @ApiResponse(responseCode = "200", description = "Login realizado com sucesso. Token JWT retornado no campo `data.token`",
             content = @Content(schema = @Schema(implementation = LoginResponseDTO.class))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Dados inválidos — email ou senha não informados ou formato inválido",
+        @ApiResponse(responseCode = "400", description = "Dados inválidos — email ou senha não informados ou formato inválido",
             content = @Content(schema = @Schema(hidden = true))),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Credenciais incorretas — email ou senha inválidos",
+        @ApiResponse(responseCode = "401", description = "Credenciais incorretas — email ou senha inválidos",
             content = @Content(schema = @Schema(hidden = true)))
     })
-    public ResponseEntity<ApiResponse<LoginResponseDTO>> login(@RequestBody @Valid LoginRequestDTO dto) {
+    public ResponseEntity<padaria.com.example.padaria.dto.ApiResponse<LoginResponseDTO>> login(@RequestBody @Valid LoginRequestDTO dto) {
         LoginResponseDTO response = authService.login(dto);
-        return ResponseEntity.ok(ApiResponse.ok("Login realizado com sucesso.", response));
+        return ResponseEntity.ok(padaria.com.example.padaria.dto.ApiResponse.ok("Login realizado com sucesso.", response));
     }
 }
