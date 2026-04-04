@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import padaria.com.example.padaria.dto.pedido.DashboardResponseDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoCancelamentoDTO;
+import padaria.com.example.padaria.dto.pedido.PedidoFiltroDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoRequestDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoResponseDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoUpdateDTO;
@@ -31,20 +32,9 @@ public class PedidoServiceImpl implements IPedidoService {
     private final PedidoRepository pedidoRepository;
 
     @Override
-    public Page<PedidoResponseDTO> listar(
-            LocalDateTime dataEntregaInicio,
-            LocalDateTime dataEntregaFim,
-            String cliente,
-            StatusPedido statusPedido,
-            Boolean pagamentoPendente,
-            Long cadastradoPorId,
-            Pageable pageable
-    ) {
-        var spec = PedidoFilterSpec.comFiltros(
-                dataEntregaInicio, dataEntregaFim, cliente,
-                statusPedido, pagamentoPendente, cadastradoPorId
-        );
-        return pedidoRepository.findAll(spec, pageable).map(PedidoResponseDTO::de);
+    public Page<PedidoResponseDTO> listar(PedidoFiltroDTO filtro, Pageable pageable) {
+        return pedidoRepository.findAll(PedidoFilterSpec.comFiltros(filtro), pageable)
+                .map(PedidoResponseDTO::de);
     }
 
     @Override

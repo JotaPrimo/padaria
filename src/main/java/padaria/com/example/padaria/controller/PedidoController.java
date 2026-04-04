@@ -13,34 +13,31 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import padaria.com.example.padaria.dto.ResponseApi;
 import padaria.com.example.padaria.dto.pedido.DashboardResponseDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoCancelamentoDTO;
+import padaria.com.example.padaria.dto.pedido.PedidoFiltroDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoRequestDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoResponseDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoUpdateDTO;
 import padaria.com.example.padaria.entity.Usuario;
-import padaria.com.example.padaria.enums.StatusPedido;
 import padaria.com.example.padaria.exception.RecursoNaoEncontradoException;
 import padaria.com.example.padaria.repository.UsuarioRepository;
 import padaria.com.example.padaria.service.IPedidoService;
-
-import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/v1/pedidos")
@@ -61,31 +58,10 @@ public class PedidoController {
         @ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true)))
     })
     public ResponseEntity<ResponseApi<Page<PedidoResponseDTO>>> listar(
-        @Parameter(description = "Início do intervalo de data de entrega (inclusive)", example = "2025-12-01T00:00:00")
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataEntregaInicio,
-
-        @Parameter(description = "Fim do intervalo de data de entrega (inclusive)", example = "2025-12-31T23:59:59")
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataEntregaFim,
-
-        @Parameter(description = "Busca parcial pelo nome do cliente (sem distinção de maiúsculas)", example = "Maria")
-        @RequestParam(required = false) String cliente,
-
-        @Parameter(description = "Filtrar pelo status do pedido", example = "PENDENTE")
-        @RequestParam(required = false) StatusPedido statusPedido,
-
-        @Parameter(description = "Filtrar apenas pedidos com pagamento pendente", example = "true")
-        @RequestParam(required = false) Boolean pagamentoPendente,
-
-        @Parameter(description = "Filtrar pelo ID do usuário que cadastrou o pedido", example = "2")
-        @RequestParam(required = false) Long cadastradoPorId,
-
+        @ModelAttribute PedidoFiltroDTO filtro,
         @PageableDefault(sort = "dataHoraEntrega", direction = Sort.Direction.ASC) Pageable pageable
     ) {
-        var resultado = IPedidoService.listar(
-                dataEntregaInicio, dataEntregaFim, cliente,
-                statusPedido, pagamentoPendente, cadastradoPorId, pageable
-        );
-        return ResponseEntity.ok(ResponseApi.ok("Pedidos listados com sucesso.", resultado));
+        return ResponseEntity.ok(ResponseApi.ok("Pedidos listados com sucesso.", IPedidoService.listar(filtro, pageable)));
     }
 
     @GetMapping("/{id}")

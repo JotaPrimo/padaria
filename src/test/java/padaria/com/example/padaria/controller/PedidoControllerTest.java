@@ -55,7 +55,7 @@ class PedidoControllerTest extends IntegrationTestBase {
         String token = obterTokenAdmin();
 
         mockMvc.perform(get("/api/v1/pedidos")
-                        .param("statusPedido", "PENDENTE")
+                        .param("statusPedido", "PENDENTE")   // @ModelAttribute lê query params pelo nome do campo
                         .header("Authorization", bearerToken(token)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalElements").value(1))
