@@ -6,7 +6,7 @@ import padaria.com.example.padaria.dto.usuario.UsuarioUpdateDTO;
 
 import java.util.List;
 
-public interface UsuarioService {
+public interface IUsuarioService {
 
     List<UsuarioResponseDTO> listarTodos();
 

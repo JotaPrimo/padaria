@@ -12,6 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import padaria.com.example.padaria.entity.Usuario;
 import padaria.com.example.padaria.enums.Role;
+import padaria.com.example.padaria.repository.PedidoRepository;
 import padaria.com.example.padaria.repository.UsuarioRepository;
 
 import java.util.Map;
@@ -26,6 +27,7 @@ public abstract class IntegrationTestBase {
 
     @Autowired protected MockMvc mockMvc;
     @Autowired protected UsuarioRepository usuarioRepository;
+    @Autowired protected PedidoRepository pedidoRepository;
     @Autowired protected PasswordEncoder passwordEncoder;
 
     protected final ObjectMapper objectMapper = new ObjectMapper();
@@ -37,6 +39,7 @@ public abstract class IntegrationTestBase {
 
     @BeforeEach
     void configurarBanco() {
+        pedidoRepository.deleteAll(); // primeiro: FK pedidos → usuarios
         usuarioRepository.deleteAll();
         criarAdmin();
     }

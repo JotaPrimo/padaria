@@ -17,7 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class UsuarioServiceImpl implements UsuarioService {
+public class UsuarioServiceImpl implements IUsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
@@ -38,9 +38,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     @Transactional
     public UsuarioResponseDTO criar(UsuarioRequestDTO dto) {
-        if (usuarioRepository.existsByEmail(dto.getEmail())) {
-            throw new NegocioException("Já existe um usuário cadastrado com o email informado.");
-        }
+        validarEmailJaCadastrado(dto);
 
         var usuario = new Usuario();
         usuario.setNome(dto.getNome());
@@ -56,10 +54,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioResponseDTO atualizar(Long id, UsuarioUpdateDTO dto) {
         var usuario = buscarOuLancar(id);
 
-        if (!usuario.getEmail().equals(dto.getEmail())
-                && usuarioRepository.existsByEmail(dto.getEmail())) {
-            throw new NegocioException("Já existe um usuário cadastrado com o email informado.");
-        }
+        validarEmailNaoDuplicado(dto, usuario);
 
         usuario.setNome(dto.getNome());
         usuario.setEmail(dto.getEmail());
@@ -91,9 +86,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public void reativar(Long id) {
         var usuario = buscarOuLancar(id);
 
-        if (usuario.isAtivo()) {
-            throw new NegocioException("O usuário já está ativo.");
-        }
+        garantirUsuarioInativo(usuario);
 
         usuario.setAtivo(true);
         usuarioRepository.save(usuario);
@@ -102,5 +95,24 @@ public class UsuarioServiceImpl implements UsuarioService {
     private Usuario buscarOuLancar(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
+    }
+
+    private void validarEmailJaCadastrado(UsuarioRequestDTO dto) {
+        if (usuarioRepository.existsByEmail(dto.getEmail())) {
+            throw new NegocioException("Já existe um usuário cadastrado com o email informado.");
+        }
+    }
+
+    private void validarEmailNaoDuplicado(UsuarioUpdateDTO dto, Usuario usuario) {
+        if (!usuario.getEmail().equals(dto.getEmail())
+                && usuarioRepository.existsByEmail(dto.getEmail())) {
+            throw new NegocioException("Já existe um usuário cadastrado com o email informado.");
+        }
+    }
+
+    private static void garantirUsuarioInativo(Usuario usuario) {
+        if (usuario.isAtivo()) {
+            throw new NegocioException("O usuário já está ativo.");
+        }
     }
 }

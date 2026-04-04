@@ -14,7 +14,7 @@ import padaria.com.example.padaria.security.JwtService;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl implements AuthService {
+public class AuthServiceImpl implements IAuthService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;

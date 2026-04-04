@@ -11,6 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 import padaria.com.example.padaria.dto.auth.LoginRequestDTO;
 import padaria.com.example.padaria.entity.Usuario;
 import padaria.com.example.padaria.enums.Role;
+import padaria.com.example.padaria.repository.PedidoRepository;
 import padaria.com.example.padaria.repository.UsuarioRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,8 +22,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @DisplayName("AuthService — Testes de Integração")
 class AuthServiceTest {
 
-    @Autowired private AuthService authService;
+    @Autowired private IAuthService IAuthService;
     @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private PedidoRepository pedidoRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
     private static final String ADMIN_EMAIL = "admin@padaria.com";
@@ -30,6 +32,7 @@ class AuthServiceTest {
 
     @BeforeEach
     void configurarBanco() {
+        pedidoRepository.deleteAll(); // primeiro: FK pedidos → usuarios
         usuarioRepository.deleteAll();
 
         var admin = new Usuario();
@@ -45,7 +48,7 @@ class AuthServiceTest {
     void login_comCredenciaisValidas_retornaTokenERoleCorretos() {
         var dto = criarLoginRequest(ADMIN_EMAIL, ADMIN_SENHA);
 
-        var resultado = authService.login(dto);
+        var resultado = IAuthService.login(dto);
 
         assertThat(resultado.getToken()).isNotBlank();
         assertThat(resultado.getNome()).isEqualTo("Admin Teste");
@@ -57,7 +60,7 @@ class AuthServiceTest {
     void login_comSenhaErrada_lancaExcecao() {
         var dto = criarLoginRequest(ADMIN_EMAIL, "SenhaErrada@1");
 
-        assertThatThrownBy(() -> authService.login(dto))
+        assertThatThrownBy(() -> IAuthService.login(dto))
                 .isInstanceOf(BadCredentialsException.class);
     }
 
@@ -74,7 +77,7 @@ class AuthServiceTest {
 
         var dto = criarLoginRequest("inativo@padaria.com", "Inativo@1234");
 
-        assertThatThrownBy(() -> authService.login(dto))
+        assertThatThrownBy(() -> IAuthService.login(dto))
                 .isInstanceOf(Exception.class);
     }
 

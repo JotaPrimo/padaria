@@ -162,6 +162,26 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.2.5</version>
+
+				<configuration>
+					<useSystemClassLoader>true</useSystemClassLoader>
+					<forkCount>1</forkCount>
+					<reuseForks>true</reuseForks>
+
+					<!-- Mostra resumo mais limpo -->
+					<printSummary>true</printSummary>
+
+					<!-- Mostra erros completos -->
+					<trimStackTrace>false</trimStackTrace>
+
+					<!-- Exibe logs do System.out -->
+					<redirectTestOutputToFile>false</redirectTestOutputToFile>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 

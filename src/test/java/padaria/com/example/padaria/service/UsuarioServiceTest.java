@@ -13,6 +13,7 @@ import padaria.com.example.padaria.entity.Usuario;
 import padaria.com.example.padaria.enums.Role;
 import padaria.com.example.padaria.exception.NegocioException;
 import padaria.com.example.padaria.exception.RecursoNaoEncontradoException;
+import padaria.com.example.padaria.repository.PedidoRepository;
 import padaria.com.example.padaria.repository.UsuarioRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,12 +24,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @DisplayName("UsuarioService — Testes de Integração")
 class UsuarioServiceTest {
 
-    @Autowired private UsuarioService usuarioService;
+    @Autowired private IUsuarioService IUsuarioService;
     @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private PedidoRepository pedidoRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void configurarBanco() {
+        pedidoRepository.deleteAll(); // primeiro: FK pedidos → usuarios
         usuarioRepository.deleteAll();
     }
 
@@ -39,7 +42,7 @@ class UsuarioServiceTest {
     void criar_comDadosValidos_persisteERetornaDTO() {
         var dto = criarRequestDTO("João Silva", "joao@padaria.com", "Senha@1234", Role.FUNCIONARIO);
 
-        var resultado = usuarioService.criar(dto);
+        var resultado = IUsuarioService.criar(dto);
 
         assertThat(resultado.getId()).isNotNull();
         assertThat(resultado.getNome()).isEqualTo("João Silva");
@@ -56,7 +59,7 @@ class UsuarioServiceTest {
         criarUsuarioNoBanco("joao@padaria.com");
         var dto = criarRequestDTO("João Outro", "joao@padaria.com", "Senha@1234", Role.FUNCIONARIO);
 
-        assertThatThrownBy(() -> usuarioService.criar(dto))
+        assertThatThrownBy(() -> IUsuarioService.criar(dto))
                 .isInstanceOf(NegocioException.class)
                 .hasMessageContaining("email");
     }
@@ -68,7 +71,7 @@ class UsuarioServiceTest {
     void buscarPorId_idExistente_retornaUsuario() {
         var usuario = criarUsuarioNoBanco("maria@padaria.com");
 
-        var resultado = usuarioService.buscarPorId(usuario.getId());
+        var resultado = IUsuarioService.buscarPorId(usuario.getId());
 
         assertThat(resultado.getId()).isEqualTo(usuario.getId());
         assertThat(resultado.getEmail()).isEqualTo("maria@padaria.com");
@@ -77,7 +80,7 @@ class UsuarioServiceTest {
     @Test
     @DisplayName("Buscar por ID inexistente deve lançar RecursoNaoEncontradoException")
     void buscarPorId_idInexistente_lancaRecursoNaoEncontrado() {
-        assertThatThrownBy(() -> usuarioService.buscarPorId(99999L))
+        assertThatThrownBy(() -> IUsuarioService.buscarPorId(99999L))
                 .isInstanceOf(RecursoNaoEncontradoException.class);
     }
 
@@ -89,7 +92,7 @@ class UsuarioServiceTest {
         var usuario = criarUsuarioNoBanco("ana@padaria.com");
         var dto = criarUpdateDTO("Ana Atualizada", "ana@padaria.com", null, Role.ADMINISTRADOR);
 
-        var resultado = usuarioService.atualizar(usuario.getId(), dto);
+        var resultado = IUsuarioService.atualizar(usuario.getId(), dto);
 
         assertThat(resultado.getNome()).isEqualTo("Ana Atualizada");
         assertThat(resultado.getRole()).isEqualTo(Role.ADMINISTRADOR);
@@ -105,7 +108,7 @@ class UsuarioServiceTest {
         var senhaAntes = usuarioRepository.findById(usuario.getId()).get().getSenha();
         var dto = criarUpdateDTO("Carlos Novo", "carlos@padaria.com", null, Role.FUNCIONARIO);
 
-        usuarioService.atualizar(usuario.getId(), dto);
+        IUsuarioService.atualizar(usuario.getId(), dto);
 
         var senhaDepois = usuarioRepository.findById(usuario.getId()).get().getSenha();
         assertThat(senhaDepois).isEqualTo(senhaAntes);
@@ -118,7 +121,7 @@ class UsuarioServiceTest {
         var outro = criarUsuarioNoBanco("outro@padaria.com");
         var dto = criarUpdateDTO("Outro", "existente@padaria.com", null, Role.FUNCIONARIO);
 
-        assertThatThrownBy(() -> usuarioService.atualizar(outro.getId(), dto))
+        assertThatThrownBy(() -> IUsuarioService.atualizar(outro.getId(), dto))
                 .isInstanceOf(NegocioException.class)
                 .hasMessageContaining("email");
     }
@@ -130,7 +133,7 @@ class UsuarioServiceTest {
     void inativar_usuarioAtivo_setaInativadoEmEAtivo() {
         var usuario = criarUsuarioNoBanco("pedro@padaria.com");
 
-        usuarioService.inativar(usuario.getId());
+        IUsuarioService.inativar(usuario.getId());
 
         var atualizado = usuarioRepository.findById(usuario.getId()).get();
         assertThat(atualizado.isAtivo()).isFalse();
@@ -142,7 +145,7 @@ class UsuarioServiceTest {
     void inativar_usuarioJaInativo_lancaNegocioException() {
         var inativo = criarUsuarioInativoNoBanco();
 
-        assertThatThrownBy(() -> usuarioService.inativar(inativo.getId()))
+        assertThatThrownBy(() -> IUsuarioService.inativar(inativo.getId()))
                 .isInstanceOf(NegocioException.class)
                 .hasMessageContaining("inativo");
     }
@@ -154,7 +157,7 @@ class UsuarioServiceTest {
     void reativar_usuarioInativo_setaAtivoTrue() {
         var inativo = criarUsuarioInativoNoBanco();
 
-        usuarioService.reativar(inativo.getId());
+        IUsuarioService.reativar(inativo.getId());
 
         var atualizado = usuarioRepository.findById(inativo.getId()).get();
         assertThat(atualizado.isAtivo()).isTrue();
@@ -165,7 +168,7 @@ class UsuarioServiceTest {
     void reativar_usuarioJaAtivo_lancaNegocioException() {
         var usuario = criarUsuarioNoBanco("lucia@padaria.com");
 
-        assertThatThrownBy(() -> usuarioService.reativar(usuario.getId()))
+        assertThatThrownBy(() -> IUsuarioService.reativar(usuario.getId()))
                 .isInstanceOf(NegocioException.class)
                 .hasMessageContaining("ativo");
     }

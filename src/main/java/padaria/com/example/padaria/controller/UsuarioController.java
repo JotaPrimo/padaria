@@ -23,7 +23,7 @@ import padaria.com.example.padaria.dto.ResponseApi;
 import padaria.com.example.padaria.dto.usuario.UsuarioRequestDTO;
 import padaria.com.example.padaria.dto.usuario.UsuarioResponseDTO;
 import padaria.com.example.padaria.dto.usuario.UsuarioUpdateDTO;
-import padaria.com.example.padaria.service.UsuarioService;
+import padaria.com.example.padaria.service.IUsuarioService;
 
 import java.util.List;
 
@@ -33,7 +33,7 @@ import java.util.List;
 @Tag(name = "Usuários", description = "Gestão de usuários do sistema. Listagem disponível para qualquer usuário autenticado. Demais operações requerem perfil ADMINISTRADOR")
 public class UsuarioController {
 
-    private final UsuarioService usuarioService;
+    private final IUsuarioService IUsuarioService;
 
     @GetMapping
     @Operation(
@@ -45,7 +45,7 @@ public class UsuarioController {
         @ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true)))
     })
     public ResponseEntity<ResponseApi<List<UsuarioResponseDTO>>> listarTodos() {
-        return ResponseEntity.ok(ResponseApi.ok("Usuários listados com sucesso.", usuarioService.listarTodos()));
+        return ResponseEntity.ok(ResponseApi.ok("Usuários listados com sucesso.", IUsuarioService.listarTodos()));
     }
 
     @GetMapping("/{id}")
@@ -63,7 +63,7 @@ public class UsuarioController {
         @Parameter(description = "Identificador único do usuário", example = "1", required = true)
         @PathVariable Long id
     ) {
-        return ResponseEntity.ok(ResponseApi.ok("Usuário encontrado.", usuarioService.buscarPorId(id)));
+        return ResponseEntity.ok(ResponseApi.ok("Usuário encontrado.", IUsuarioService.buscarPorId(id)));
     }
 
     @PostMapping
@@ -78,7 +78,7 @@ public class UsuarioController {
         @ApiResponse(responseCode = "403", description = "Sem permissão — requer perfil ADMINISTRADOR", content = @Content(schema = @Schema(hidden = true)))
     })
     public ResponseEntity<ResponseApi<UsuarioResponseDTO>> criar(@RequestBody @Valid UsuarioRequestDTO dto) {
-        UsuarioResponseDTO criado = usuarioService.criar(dto);
+        UsuarioResponseDTO criado = IUsuarioService.criar(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(ResponseApi.ok("Usuário criado com sucesso.", criado));
     }
 
@@ -99,7 +99,7 @@ public class UsuarioController {
         @PathVariable Long id,
         @RequestBody @Valid UsuarioUpdateDTO dto
     ) {
-        return ResponseEntity.ok(ResponseApi.ok("Usuário atualizado com sucesso.", usuarioService.atualizar(id, dto)));
+        return ResponseEntity.ok(ResponseApi.ok("Usuário atualizado com sucesso.", IUsuarioService.atualizar(id, dto)));
     }
 
     @PatchMapping("/{id}/inativar")
@@ -118,7 +118,7 @@ public class UsuarioController {
         @Parameter(description = "Identificador único do usuário", example = "1", required = true)
         @PathVariable Long id
     ) {
-        usuarioService.inativar(id);
+        IUsuarioService.inativar(id);
         return ResponseEntity.ok(ResponseApi.ok("Usuário inativado com sucesso."));
     }
 
@@ -138,7 +138,7 @@ public class UsuarioController {
         @Parameter(description = "Identificador único do usuário", example = "1", required = true)
         @PathVariable Long id
     ) {
-        usuarioService.reativar(id);
+        IUsuarioService.reativar(id);
         return ResponseEntity.ok(ResponseApi.ok("Usuário reativado com sucesso."));
     }
 }

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import padaria.com.example.padaria.dto.ResponseApi;
 import padaria.com.example.padaria.dto.auth.LoginRequestDTO;
 import padaria.com.example.padaria.dto.auth.LoginResponseDTO;
-import padaria.com.example.padaria.service.AuthService;
+import padaria.com.example.padaria.service.IAuthService;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -25,7 +25,7 @@ import padaria.com.example.padaria.service.AuthService;
 @Tag(name = "Autenticação", description = "Endpoint público para autenticação de usuários e obtenção do token JWT")
 public class AuthController {
 
-    private final AuthService authService;
+    private final IAuthService IAuthService;
 
     @PostMapping("/login")
     @SecurityRequirements
@@ -50,7 +50,7 @@ public class AuthController {
             content = @Content(schema = @Schema(hidden = true)))
     })
     public ResponseEntity<ResponseApi<LoginResponseDTO>> login(@RequestBody @Valid LoginRequestDTO dto) {
-        LoginResponseDTO response = authService.login(dto);
+        LoginResponseDTO response = IAuthService.login(dto);
         return ResponseEntity.ok(ResponseApi.ok("Login realizado com sucesso.", response));
     }
 }
