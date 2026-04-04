@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import padaria.com.example.padaria.dto.ResponseApi;
 import padaria.com.example.padaria.dto.auth.LoginRequestDTO;
 import padaria.com.example.padaria.dto.auth.LoginResponseDTO;
 import padaria.com.example.padaria.service.AuthService;
@@ -48,8 +49,8 @@ public class AuthController {
         @ApiResponse(responseCode = "401", description = "Credenciais incorretas — email ou senha inválidos",
             content = @Content(schema = @Schema(hidden = true)))
     })
-    public ResponseEntity<padaria.com.example.padaria.dto.ApiResponse<LoginResponseDTO>> login(@RequestBody @Valid LoginRequestDTO dto) {
+    public ResponseEntity<ResponseApi<LoginResponseDTO>> login(@RequestBody @Valid LoginRequestDTO dto) {
         LoginResponseDTO response = authService.login(dto);
-        return ResponseEntity.ok(padaria.com.example.padaria.dto.ApiResponse.ok("Login realizado com sucesso.", response));
+        return ResponseEntity.ok(ResponseApi.ok("Login realizado com sucesso.", response));
     }
 }
