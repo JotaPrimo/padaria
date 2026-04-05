@@ -3,10 +3,13 @@ package padaria.com.example.padaria.controller;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Autowired;
 import padaria.com.example.padaria.base.IntegrationTestBase;
+import padaria.com.example.padaria.entity.Pagamento;
 import padaria.com.example.padaria.entity.Pedido;
 import padaria.com.example.padaria.entity.Usuario;
 import padaria.com.example.padaria.enums.StatusPedido;
+import padaria.com.example.padaria.repository.PagamentoPedidoRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,6 +22,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @DisplayName("PedidoController — Testes de Integração")
 class PedidoControllerTest extends IntegrationTestBase {
+
+    @Autowired private PagamentoPedidoRepository pagamentoPedidoRepository;
 
     // ==================== LISTAR ====================
 
@@ -279,7 +284,15 @@ class PedidoControllerTest extends IntegrationTestBase {
         pedido.setValorAdiantamento(new BigDecimal("100.00"));
         pedido.setCadastradoPor(usuario);
         pedido.setAlteradoPor(usuario);
-        return pedidoRepository.save(pedido);
+        var pedidoSalvo = pedidoRepository.save(pedido);
+
+        var pagamento = new Pagamento();
+        pagamento.setPedido(pedidoSalvo);
+        pagamento.setValor(new BigDecimal("100.00"));
+        pagamento.setRegistradoPor(usuario);
+        pagamentoPedidoRepository.save(pagamento);
+
+        return pedidoSalvo;
     }
 
     private Map<String, Object> novoPedidoValido() {

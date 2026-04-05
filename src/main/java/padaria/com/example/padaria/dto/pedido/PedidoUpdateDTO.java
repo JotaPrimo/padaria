@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
-import padaria.com.example.padaria.enums.MotivoCancelamento;
 import padaria.com.example.padaria.enums.StatusPedido;
 import padaria.com.example.padaria.validation.ValorPermitidoEnum;
 
@@ -50,7 +49,4 @@ public class PedidoUpdateDTO {
     @NotNull(message = "O campo pagamento integral é obrigatório.")
     @Schema(description = "Indica se o pagamento foi realizado integralmente", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     private Boolean pagamentoIntegral;
-
-    @Schema(description = "Valor pago antecipadamente. Obrigatório quando pagamentoIntegral for false", nullable = true)
-    private BigDecimal valorAdiantamento;
 }

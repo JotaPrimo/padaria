@@ -9,6 +9,7 @@ import padaria.com.example.padaria.enums.StatusPedido;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Builder
@@ -66,7 +67,10 @@ public class PedidoResponseDTO {
     @Schema(description = "Indica se o pedido está atrasado: status PENDENTE com data de entrega no passado. Calculado, não armazenado no banco", example = "false")
     private boolean atrasado;
 
-    @Schema(description = "Total já pago pelo cliente. Se pagamento integral: igual ao valorPedido. Se adiantamento: igual ao valorAdiantamento", example = "150.00")
+    @Schema(description = "Total já pago pelo cliente — soma de todos os pagamentos registrados no histórico", example = "150.00")
     private BigDecimal totalPagamentos;
+
+    @Schema(description = "Histórico de pagamentos registrados para este pedido")
+    private List<PagamentoResponseDTO> pagamentos;
 
 }

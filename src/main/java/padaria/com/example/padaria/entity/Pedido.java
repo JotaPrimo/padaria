@@ -1,5 +1,6 @@
 package padaria.com.example.padaria.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,11 +11,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.data.annotation.LastModifiedDate;
 import padaria.com.example.padaria.enums.MotivoCancelamento;
 import padaria.com.example.padaria.enums.StatusPedido;
 
@@ -74,6 +80,7 @@ public class Pedido {
     @JoinColumn(name = "cadastrado_por", nullable = false, updatable = false)
     private Usuario cadastradoPor;
 
+    @LastModifiedDate
     @Column(name = "data_ultima_alteracao")
     private LocalDateTime dataUltimaAlteracao;
 
@@ -81,9 +88,16 @@ public class Pedido {
     @JoinColumn(name = "alterado_por", nullable = false)
     private Usuario alteradoPor;
 
+
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Pagamento> pagamentos = new ArrayList<>();
+
+    @Column(name = "data_criacao", updatable = false)
+    private LocalDateTime dataCriacao;
+
     @PrePersist
     private void prePersist() {
-        this.dataUltimaAlteracao = LocalDateTime.now();
+        this.dataCriacao = LocalDateTime.now();
     }
 
     @PreUpdate

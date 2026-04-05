@@ -44,6 +44,7 @@ public class PedidoRequestDTO {
     @Schema(description = "Indica se o pagamento foi realizado integralmente. Se false, o campo valorAdiantamento torna-se obrigatório", example = "false", requiredMode = Schema.RequiredMode.REQUIRED)
     private Boolean pagamentoIntegral;
 
+    @Positive(message = "O valor do adiantamento deve ser maior que zero.")
     @Schema(description = "Valor pago antecipadamente pelo cliente. Obrigatório quando pagamentoIntegral for false", example = "150.00", nullable = true)
     private BigDecimal valorAdiantamento;
 }

@@ -10,6 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import padaria.com.example.padaria.dto.pedido.PedidoCancelamentoDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoRequestDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoUpdateDTO;
+import padaria.com.example.padaria.entity.Pagamento;
 import padaria.com.example.padaria.entity.Pedido;
 import padaria.com.example.padaria.entity.Usuario;
 import padaria.com.example.padaria.enums.MotivoCancelamento;
@@ -17,6 +18,7 @@ import padaria.com.example.padaria.enums.Role;
 import padaria.com.example.padaria.enums.StatusPedido;
 import padaria.com.example.padaria.exception.NegocioException;
 import padaria.com.example.padaria.exception.RecursoNaoEncontradoException;
+import padaria.com.example.padaria.repository.PagamentoPedidoRepository;
 import padaria.com.example.padaria.repository.PedidoRepository;
 import padaria.com.example.padaria.repository.UsuarioRepository;
 
@@ -33,6 +35,7 @@ class PedidoServiceTest {
 
     @Autowired private IPedidoService pedidoService;
     @Autowired private PedidoRepository pedidoRepository;
+    @Autowired private PagamentoPedidoRepository pagamentoPedidoRepository;
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
@@ -111,7 +114,7 @@ class PedidoServiceTest {
     void atualizar_comDadosValidos_clienteNaoAlterado() {
         var pedido = criarPedidoNoBanco(usuarioLogado, StatusPedido.PENDENTE);
         var dto = criarUpdateDTO("(11) 11111-2222", LocalDateTime.now().plusDays(10),
-                "Bolo atualizado", StatusPedido.ENTREGUE, true, null);
+                "Bolo atualizado", StatusPedido.ENTREGUE, true);
 
         var resultado = pedidoService.atualizar(pedido.getId(), dto, usuarioLogado);
 
@@ -126,7 +129,7 @@ class PedidoServiceTest {
     void atualizar_pedidoCancelado_lancaNegocioException() {
         var pedido = criarPedidoNoBanco(usuarioLogado, StatusPedido.CANCELADO);
         var dto = criarUpdateDTO("(11) 11111-2222", LocalDateTime.now().plusDays(10),
-                "Desc", StatusPedido.PENDENTE, true, null);
+                "Desc", StatusPedido.PENDENTE, true);
 
         assertThatThrownBy(() -> pedidoService.atualizar(pedido.getId(), dto, usuarioLogado))
                 .isInstanceOf(NegocioException.class)
@@ -250,7 +253,15 @@ class PedidoServiceTest {
         pedido.setValorAdiantamento(new BigDecimal("100.00"));
         pedido.setCadastradoPor(usuario);
         pedido.setAlteradoPor(usuario);
-        return pedidoRepository.save(pedido);
+        var pedidoSalvo = pedidoRepository.save(pedido);
+
+        var pagamento = new Pagamento();
+        pagamento.setPedido(pedidoSalvo);
+        pagamento.setValor(new BigDecimal("100.00"));
+        pagamento.setRegistradoPor(usuario);
+        pagamentoPedidoRepository.save(pagamento);
+
+        return pedidoSalvo;
     }
 
     private PedidoRequestDTO criarRequestDTO(String cliente, String telefone,
@@ -264,13 +275,12 @@ class PedidoServiceTest {
     }
 
     private PedidoUpdateDTO criarUpdateDTO(String telefone, LocalDateTime dataEntrega,
-            String descricao, StatusPedido status,
-            boolean pagamentoIntegral, BigDecimal adiantamento) {
+            String descricao, StatusPedido status, boolean pagamentoIntegral) {
         return criarDTO(PedidoUpdateDTO.class,
                 new String[]{"telefone", "dataHoraEntrega", "descricaoPedido", "statusPedido",
-                        "valorPedido", "pagamentoIntegral", "valorAdiantamento"},
+                        "valorPedido", "pagamentoIntegral"},
                 new Object[]{telefone, dataEntrega, descricao, status,
-                        new BigDecimal("350.00"), pagamentoIntegral, adiantamento});
+                        new BigDecimal("350.00"), pagamentoIntegral});
     }
 
     private PedidoCancelamentoDTO criarCancelamentoDTO(MotivoCancelamento motivo,

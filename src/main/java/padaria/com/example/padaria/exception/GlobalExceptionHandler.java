@@ -1,5 +1,7 @@
 package padaria.com.example.padaria.exception;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -94,6 +96,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ResponseApi.erro("Erro ao processar a requisição."));
+    }
+
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<ResponseApi<Void>> handleOrdenacaoInvalida(PropertyReferenceException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ResponseApi.erro(
+                        "Parâmetro de ordenação inválido: '%s'. Verifique os campos disponíveis.".formatted(ex.getPropertyName())
+                ));
+    }
+
+    @ExceptionHandler(InvalidDataAccessApiUsageException.class)
+    public ResponseEntity<ResponseApi<Void>> handleDataAccessInvalido(InvalidDataAccessApiUsageException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ResponseApi.erro("Parâmetro de consulta inválido."));
     }
 
     @ExceptionHandler(IllegalStateException.class)

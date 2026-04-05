@@ -11,9 +11,8 @@ import padaria.com.example.padaria.dto.pedido.PedidoCancelamentoDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoFiltroDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoRequestDTO;
 import padaria.com.example.padaria.dto.pedido.PedidoResponseDTO;
-
-import java.util.List;
 import padaria.com.example.padaria.dto.pedido.PedidoUpdateDTO;
+import padaria.com.example.padaria.entity.Pagamento;
 import padaria.com.example.padaria.entity.Pedido;
 import padaria.com.example.padaria.entity.Usuario;
 import padaria.com.example.padaria.enums.MotivoCancelamento;
@@ -21,28 +20,34 @@ import padaria.com.example.padaria.enums.StatusPedido;
 import padaria.com.example.padaria.exception.NegocioException;
 import padaria.com.example.padaria.exception.RecursoNaoEncontradoException;
 import padaria.com.example.padaria.mapper.PedidoMapper;
+import padaria.com.example.padaria.repository.PagamentoPedidoRepository;
 import padaria.com.example.padaria.repository.PedidoRepository;
 import padaria.com.example.padaria.utils.StringValidator;
 
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class PedidoServiceImpl implements IPedidoService {
 
     private final PedidoRepository pedidoRepository;
+    private final PagamentoPedidoRepository pagamentoPedidoRepository;
     private final PedidoMapper pedidoMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public Page<PedidoResponseDTO> listar(PedidoFiltroDTO filtro, Pageable pageable) {
         return pedidoRepository.findAll(PedidoFilterSpec.comFiltros(filtro), pageable)
                 .map(pedidoMapper::toResponseDTO);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PedidoResponseDTO buscarPorId(Long id) {
         return pedidoMapper.toResponseDTO(buscarOuLancar(id));
     }
@@ -52,20 +57,24 @@ public class PedidoServiceImpl implements IPedidoService {
     public PedidoResponseDTO criar(PedidoRequestDTO dto, Usuario usuarioLogado) {
         validarAdiantamentoObrigatorio(dto);
 
-        var pedido = new Pedido();
-        pedido.setCliente(dto.getCliente());
-        pedido.setTelefone(dto.getTelefone());
-        pedido.setDataHoraEntrega(dto.getDataHoraEntrega());
-        pedido.setDescricaoPedido(dto.getDescricaoPedido());
-        pedido.setObservacao(dto.getObservacao());
-        pedido.setValorPedido(dto.getValorPedido());
-        pedido.setPagamentoIntegral(dto.getPagamentoIntegral());
-        pedido.setValorAdiantamento(dto.getPagamentoIntegral() ? null : dto.getValorAdiantamento());
+        var pedido = pedidoMapper.toEntity(dto);
         pedido.setStatusPedido(StatusPedido.PENDENTE);
         pedido.setCadastradoPor(usuarioLogado);
         pedido.setAlteradoPor(usuarioLogado);
 
-        return pedidoMapper.toResponseDTO(pedidoRepository.save(pedido));
+        var pedidoSalvo = pedidoRepository.save(pedido);
+
+        var pagamentoInicial = new Pagamento();
+        pagamentoInicial.setPedido(pedidoSalvo);
+        pagamentoInicial.setRegistradoPor(usuarioLogado);
+        if (dto.getPagamentoIntegral()) {
+            pagamentoInicial.setValor(dto.getValorPedido());
+        } else {
+            pagamentoInicial.setValor(dto.getValorAdiantamento());
+        }
+        pagamentoPedidoRepository.save(pagamentoInicial);
+
+        return pedidoMapper.toResponseDTO(pedidoRepository.findById(pedidoSalvo.getId()).orElseThrow());
     }
 
     @Override
@@ -74,17 +83,10 @@ public class PedidoServiceImpl implements IPedidoService {
         var pedido = buscarOuLancar(id);
 
         bloquearEdicaoPedidoCancelado(pedido);
-        isAdiantamentoObrigatorio(dto);
 
-        pedido.setTelefone(dto.getTelefone());
-        pedido.setDataHoraEntrega(dto.getDataHoraEntrega());
-        pedido.setDescricaoPedido(dto.getDescricaoPedido());
-        pedido.setObservacao(dto.getObservacao());
-        pedido.setStatusPedido(dto.getStatusPedido());
-        pedido.setValorPedido(dto.getValorPedido());
-        pedido.setPagamentoIntegral(dto.getPagamentoIntegral());
-        pedido.setValorAdiantamento(dto.getPagamentoIntegral() ? null : dto.getValorAdiantamento());
+        pedidoMapper.updateFromDTO(dto, pedido);
         pedido.setAlteradoPor(usuarioLogado);
+        pedido.setDataUltimaAlteracao(LocalDateTime.now());
 
         return pedidoMapper.toResponseDTO(pedidoRepository.save(pedido));
     }
@@ -98,9 +100,8 @@ public class PedidoServiceImpl implements IPedidoService {
         validarObservacaoCancelamentoObrigatoria(dto);
         checarEstorno(dto, pedido);
 
+        pedidoMapper.applyCancelamento(dto, pedido);
         pedido.setStatusPedido(StatusPedido.CANCELADO);
-        pedido.setMotivoCancelamento(dto.getMotivoCancelamento());
-        pedido.setObsCancelamento(dto.getObsCancelamento());
         pedido.setDataCancelamento(LocalDate.now());
         pedido.setAlteradoPor(usuarioLogado);
 
@@ -134,6 +135,7 @@ public class PedidoServiceImpl implements IPedidoService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PedidoResponseDTO> exportar(PedidoFiltroDTO filtro) {
         var sort = Sort.by(Sort.Direction.ASC, "dataHoraEntrega");
         return pedidoRepository.findAll(PedidoFilterSpec.comFiltros(filtro), sort)
@@ -159,12 +161,6 @@ public class PedidoServiceImpl implements IPedidoService {
         }
     }
 
-    private static void isAdiantamentoObrigatorio(PedidoUpdateDTO dto) {
-        if (!dto.getPagamentoIntegral() && dto.getValorAdiantamento() == null) {
-            throw new NegocioException("O campo valor de adiantamento é obrigatório quando o pagamento não é integral.");
-        }
-    }
-
     private static void verificarPedidoJaCancelado(Pedido pedido) {
         if (pedido.isPedidoCancelado()) {
             throw new NegocioException("O pedido já está cancelado.");
@@ -181,10 +177,15 @@ public class PedidoServiceImpl implements IPedidoService {
     }
 
     private static void checarEstorno(PedidoCancelamentoDTO dto, Pedido pedido) {
-        if (pedido.getValorAdiantamento() != null && !dto.isEstornoConfirmado()) {
+        BigDecimal totalPago = pedido.getPagamentos().stream()
+                .filter(Pagamento::isValido)
+                .map(Pagamento::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (totalPago.compareTo(BigDecimal.ZERO) > 0 && !dto.isEstornoConfirmado()) {
             throw new NegocioException(
-                    "Este pedido possui adiantamento de R$ " + pedido.getValorAdiantamento()
-                            + ". Confirme que o estorno foi realizado antes de cancelar."
+                    "Este pedido possui adiantamento de R$ " + totalPago
+                    + ". Confirme que o estorno foi realizado antes de cancelar."
             );
         }
     }
