@@ -1,15 +1,14 @@
 package padaria.com.example.padaria.dto.usuario;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import padaria.com.example.padaria.entity.Usuario;
 import padaria.com.example.padaria.enums.Role;
 
 import java.time.LocalDateTime;
 
 @Getter
-@AllArgsConstructor
+@Builder
 @Schema(description = "Dados do usuário retornados pela API")
 public class UsuarioResponseDTO {
 
@@ -37,16 +36,4 @@ public class UsuarioResponseDTO {
     @Schema(description = "Data e hora em que o usuário foi inativado. Nulo se o usuário está ativo", example = "null", nullable = true)
     private LocalDateTime inativadoEm;
 
-    public static UsuarioResponseDTO de(Usuario usuario) {
-        return new UsuarioResponseDTO(
-                usuario.getId(),
-                usuario.getNome(),
-                usuario.getEmail(),
-                usuario.getRole(),
-                usuario.isAtivo(),
-                usuario.getCreatedAt(),
-                usuario.getUpdatedAt(),
-                usuario.getInativadoEm()
-        );
-    }
 }

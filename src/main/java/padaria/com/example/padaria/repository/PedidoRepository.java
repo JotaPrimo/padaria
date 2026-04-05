@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long>, JpaSpecificationExecutor<Pedido> {
 
-    @Query("SELECT COUNT(p) FROM Pedido p WHERE p.dataHoraEntrega BETWEEN :inicio AND :fim")
+    @Query("SELECT COUNT(p) FROM Pedido p WHERE p.dataHoraEntrega >= :inicio AND p.dataHoraEntrega < :fim")
     long countByDataHoraEntregaBetween(LocalDateTime inicio, LocalDateTime fim);
 
     @Query("SELECT COUNT(p) FROM Pedido p WHERE p.pagamentoIntegral = false AND p.statusPedido <> :statusCancelado")

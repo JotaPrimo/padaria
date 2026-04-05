@@ -1,9 +1,8 @@
 package padaria.com.example.padaria.dto.pedido;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import padaria.com.example.padaria.entity.Pedido;
 import padaria.com.example.padaria.enums.MotivoCancelamento;
 import padaria.com.example.padaria.enums.StatusPedido;
 
@@ -12,7 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
-@AllArgsConstructor
+@Builder
 @Schema(description = "Dados do pedido retornados pela API")
 public class PedidoResponseDTO {
 
@@ -70,33 +69,4 @@ public class PedidoResponseDTO {
     @Schema(description = "Total já pago pelo cliente. Se pagamento integral: igual ao valorPedido. Se adiantamento: igual ao valorAdiantamento", example = "150.00")
     private BigDecimal totalPagamentos;
 
-    public static PedidoResponseDTO de(Pedido pedido) {
-        boolean atrasado = pedido.getStatusPedido() == StatusPedido.PENDENTE
-                && pedido.getDataHoraEntrega().isBefore(LocalDateTime.now());
-
-        BigDecimal totalPagamentos = pedido.isPagamentoIntegral()
-                ? pedido.getValorPedido()
-                : (pedido.getValorAdiantamento() != null ? pedido.getValorAdiantamento() : BigDecimal.ZERO);
-
-        return new PedidoResponseDTO(
-                pedido.getId(),
-                pedido.getCliente(),
-                pedido.getTelefone(),
-                pedido.getDataHoraEntrega(),
-                pedido.getDescricaoPedido(),
-                pedido.getObservacao(),
-                pedido.getStatusPedido(),
-                pedido.getValorPedido(),
-                pedido.isPagamentoIntegral(),
-                pedido.getValorAdiantamento(),
-                pedido.getDataCancelamento(),
-                pedido.getMotivoCancelamento(),
-                pedido.getObsCancelamento(),
-                pedido.getCadastradoPor().getNome(),
-                pedido.getDataUltimaAlteracao(),
-                pedido.getAlteradoPor().getNome(),
-                atrasado,
-                totalPagamentos
-        );
-    }
 }

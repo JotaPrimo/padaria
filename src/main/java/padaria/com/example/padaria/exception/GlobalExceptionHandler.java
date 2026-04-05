@@ -2,6 +2,7 @@ package padaria.com.example.padaria.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
@@ -16,6 +17,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -26,8 +29,8 @@ public class GlobalExceptionHandler {
 
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             errors
-                .computeIfAbsent(fieldError.getField(), k -> new ArrayList<>())
-                .add(fieldError.getDefaultMessage());
+                    .computeIfAbsent(fieldError.getField(), k -> new ArrayList<>())
+                    .add(fieldError.getDefaultMessage());
         }
 
         Map<String, Object> body = new HashMap<>();
@@ -80,10 +83,57 @@ public class GlobalExceptionHandler {
                 .body(ResponseApi.erro("Credenciais inválidas."));
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ResponseApi<Void>> handleMensagemIlegivel(HttpMessageNotReadableException ex) {
+
+        // 1️⃣ tenta tratar enum (regex fallback)
+        ResponseEntity<ResponseApi<Void>> response = tratarErroEnumViaMensagem(ex);
+        if (response != null) return response;
+
+        // 2️⃣ fallback genérico
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ResponseApi.erro("Erro ao processar a requisição."));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ResponseApi<Void>> handleEstadoIlegal(IllegalStateException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(ResponseApi.erro(ex.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseApi<Void>> handleErroGenerico(Exception ex) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ResponseApi.erro("Ocorreu um erro interno. Tente novamente mais tarde."));
+    }
+
+    private ResponseEntity<ResponseApi<Void>> tratarErroEnumViaMensagem(HttpMessageNotReadableException ex) {
+
+        String mensagem = ex.getMessage();
+
+        if (mensagem != null && mensagem.contains("not one of the values accepted")) {
+
+            Pattern valorPattern = Pattern.compile("from String \"(.*?)\"");
+            Matcher valorMatcher = valorPattern.matcher(mensagem);
+
+            String valorInformado = valorMatcher.find() ? valorMatcher.group(1) : "desconhecido";
+
+            Pattern valoresPattern = Pattern.compile("\\[(.*?)\\]");
+            Matcher valoresMatcher = valoresPattern.matcher(mensagem);
+
+            String valores = valoresMatcher.find() ? valoresMatcher.group(1) : "";
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ResponseApi.erro(
+                            "Valor inválido '%s'. Valores aceitos: %s."
+                                    .formatted(valorInformado, valores)
+                    ));
+        }
+
+        return null;
     }
 }

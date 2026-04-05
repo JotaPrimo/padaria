@@ -20,6 +20,7 @@ import padaria.com.example.padaria.enums.MotivoCancelamento;
 import padaria.com.example.padaria.enums.StatusPedido;
 import padaria.com.example.padaria.exception.NegocioException;
 import padaria.com.example.padaria.exception.RecursoNaoEncontradoException;
+import padaria.com.example.padaria.mapper.PedidoMapper;
 import padaria.com.example.padaria.repository.PedidoRepository;
 import padaria.com.example.padaria.utils.StringValidator;
 
@@ -33,16 +34,17 @@ import java.time.temporal.TemporalAdjusters;
 public class PedidoServiceImpl implements IPedidoService {
 
     private final PedidoRepository pedidoRepository;
+    private final PedidoMapper pedidoMapper;
 
     @Override
     public Page<PedidoResponseDTO> listar(PedidoFiltroDTO filtro, Pageable pageable) {
         return pedidoRepository.findAll(PedidoFilterSpec.comFiltros(filtro), pageable)
-                .map(PedidoResponseDTO::de);
+                .map(pedidoMapper::toResponseDTO);
     }
 
     @Override
     public PedidoResponseDTO buscarPorId(Long id) {
-        return PedidoResponseDTO.de(buscarOuLancar(id));
+        return pedidoMapper.toResponseDTO(buscarOuLancar(id));
     }
 
     @Override
@@ -63,7 +65,7 @@ public class PedidoServiceImpl implements IPedidoService {
         pedido.setCadastradoPor(usuarioLogado);
         pedido.setAlteradoPor(usuarioLogado);
 
-        return PedidoResponseDTO.de(pedidoRepository.save(pedido));
+        return pedidoMapper.toResponseDTO(pedidoRepository.save(pedido));
     }
 
     @Override
@@ -84,7 +86,7 @@ public class PedidoServiceImpl implements IPedidoService {
         pedido.setValorAdiantamento(dto.getPagamentoIntegral() ? null : dto.getValorAdiantamento());
         pedido.setAlteradoPor(usuarioLogado);
 
-        return PedidoResponseDTO.de(pedidoRepository.save(pedido));
+        return pedidoMapper.toResponseDTO(pedidoRepository.save(pedido));
     }
 
     @Override
@@ -107,20 +109,21 @@ public class PedidoServiceImpl implements IPedidoService {
 
     @Override
     public DashboardResponseDTO dashboard() {
-        LocalDateTime hoje = LocalDate.now().atStartOfDay();
-        LocalDateTime fimHoje = hoje.plusDays(1).minusNanos(1);
 
-        LocalDateTime inicioSemana = LocalDate.now()
-                .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        LocalDate hojeDate = LocalDate.now();
+
+        LocalDateTime hoje = hojeDate.atStartOfDay();
+        LocalDateTime fimHoje = hoje.plusDays(1);
+
+        LocalDateTime inicioSemana = hojeDate
+                .with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
                 .atStartOfDay();
-        LocalDateTime fimSemana = inicioSemana.plusDays(7).minusNanos(1);
+        LocalDateTime fimSemana = inicioSemana.plusDays(7);
 
-        LocalDateTime inicioMes = LocalDate.now()
+        LocalDateTime inicioMes = hojeDate
                 .with(TemporalAdjusters.firstDayOfMonth())
                 .atStartOfDay();
-        LocalDateTime fimMes = LocalDate.now()
-                .with(TemporalAdjusters.lastDayOfMonth())
-                .atTime(23, 59, 59);
+        LocalDateTime fimMes = inicioMes.plusMonths(1);
 
         long pedidosHoje = pedidoRepository.countByDataHoraEntregaBetween(hoje, fimHoje);
         long pedidosSemana = pedidoRepository.countByDataHoraEntregaBetween(inicioSemana, fimSemana);
@@ -135,7 +138,7 @@ public class PedidoServiceImpl implements IPedidoService {
         var sort = Sort.by(Sort.Direction.ASC, "dataHoraEntrega");
         return pedidoRepository.findAll(PedidoFilterSpec.comFiltros(filtro), sort)
                 .stream()
-                .map(PedidoResponseDTO::de)
+                .map(pedidoMapper::toResponseDTO)
                 .toList();
     }
 

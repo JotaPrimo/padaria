@@ -6,7 +6,6 @@ import org.springframework.http.MediaType;
 import padaria.com.example.padaria.base.IntegrationTestBase;
 import padaria.com.example.padaria.entity.Pedido;
 import padaria.com.example.padaria.entity.Usuario;
-import padaria.com.example.padaria.enums.MotivoCancelamento;
 import padaria.com.example.padaria.enums.StatusPedido;
 
 import java.math.BigDecimal;
@@ -14,10 +13,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 

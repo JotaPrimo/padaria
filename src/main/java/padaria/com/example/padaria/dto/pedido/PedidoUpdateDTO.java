@@ -6,7 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
+import padaria.com.example.padaria.enums.MotivoCancelamento;
 import padaria.com.example.padaria.enums.StatusPedido;
+import padaria.com.example.padaria.validation.ValorPermitidoEnum;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,7 +34,12 @@ public class PedidoUpdateDTO {
     private String observacao;
 
     @NotNull(message = "O campo status do pedido é obrigatório.")
-    @Schema(description = "Estado atual do pedido", example = "ENTREGUE", requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = {"PENDENTE", "ENTREGUE", "CANCELADO"})
+    @ValorPermitidoEnum(
+            enumClass = StatusPedido.class,
+            permitidos = {"PENDENTE", "ENTREGUE"},
+            message = "Status inválido para edição. Valores permitidos: PENDENTE, ENTREGUE."
+    )
+    @Schema(description = "Estado atual do pedido", example = "ENTREGUE", requiredMode = Schema.RequiredMode.REQUIRED, allowableValues = {"PENDENTE", "ENTREGUE"})
     private StatusPedido statusPedido;
 
     @NotNull(message = "O campo valor do pedido é obrigatório.")

@@ -42,6 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/usuarios").authenticated()
                         .requestMatchers("/api/v1/usuarios/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/v1/dev/**").hasRole("ADMINISTRADOR")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

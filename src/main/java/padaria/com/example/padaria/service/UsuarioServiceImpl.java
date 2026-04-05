@@ -10,6 +10,7 @@ import padaria.com.example.padaria.dto.usuario.UsuarioUpdateDTO;
 import padaria.com.example.padaria.entity.Usuario;
 import padaria.com.example.padaria.exception.NegocioException;
 import padaria.com.example.padaria.exception.RecursoNaoEncontradoException;
+import padaria.com.example.padaria.mapper.UsuarioMapper;
 import padaria.com.example.padaria.repository.UsuarioRepository;
 
 import java.time.LocalDateTime;
@@ -21,18 +22,19 @@ public class UsuarioServiceImpl implements IUsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UsuarioMapper usuarioMapper;
 
     @Override
     public List<UsuarioResponseDTO> listarTodos() {
         return usuarioRepository.findAll()
                 .stream()
-                .map(UsuarioResponseDTO::de)
+                .map(usuarioMapper::toResponseDTO)
                 .toList();
     }
 
     @Override
     public UsuarioResponseDTO buscarPorId(Long id) {
-        return UsuarioResponseDTO.de(buscarOuLancar(id));
+        return usuarioMapper.toResponseDTO(buscarOuLancar(id));
     }
 
     @Override
@@ -46,7 +48,7 @@ public class UsuarioServiceImpl implements IUsuarioService {
         usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
         usuario.setRole(dto.getRole());
 
-        return UsuarioResponseDTO.de(usuarioRepository.save(usuario));
+        return usuarioMapper.toResponseDTO(usuarioRepository.save(usuario));
     }
 
     @Override
@@ -64,7 +66,7 @@ public class UsuarioServiceImpl implements IUsuarioService {
             usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
         }
 
-        return UsuarioResponseDTO.de(usuarioRepository.save(usuario));
+        return usuarioMapper.toResponseDTO(usuarioRepository.save(usuario));
     }
 
     @Override
