@@ -15,7 +15,7 @@ import padaria.com.example.padaria.enums.Role;
 import padaria.com.example.padaria.enums.StatusPedido;
 import padaria.com.example.padaria.exception.NegocioException;
 import padaria.com.example.padaria.exception.RecursoNaoEncontradoException;
-import padaria.com.example.padaria.repository.PagamentoPedidoRepository;
+import padaria.com.example.padaria.repository.PagamentoRepository;
 import padaria.com.example.padaria.repository.PedidoRepository;
 import padaria.com.example.padaria.repository.UsuarioRepository;
 
@@ -32,7 +32,7 @@ class PagamentoServiceTest {
 
     @Autowired private IPagamentoService pagamentoService;
     @Autowired private PedidoRepository pedidoRepository;
-    @Autowired private PagamentoPedidoRepository pagamentoPedidoRepository;
+    @Autowired private PagamentoRepository pagamentoRepository;
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
@@ -174,7 +174,7 @@ class PagamentoServiceTest {
             pagamento.setInvaliadoEm(LocalDateTime.now());
             pagamento.setInvaliadoPor(usuarioLogado);
         }
-        return pagamentoPedidoRepository.save(pagamento);
+        return pagamentoRepository.save(pagamento);
     }
 
     private PagamentoRequestDTO criarRequestDTO(BigDecimal valor) {

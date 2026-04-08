@@ -15,4 +15,7 @@ public class PagamentoRequestDTO {
     @Positive(message = "O valor do pagamento deve ser maior que zero.")
     @Schema(description = "Valor do pagamento a registrar", example = "150.00", requiredMode = Schema.RequiredMode.REQUIRED)
     private BigDecimal valor;
+
+    @NotNull(message = "O campo adiantamento é obrigatório.")
+    private boolean adiantamento;
 }

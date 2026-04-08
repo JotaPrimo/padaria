@@ -9,7 +9,7 @@ import padaria.com.example.padaria.entity.Pagamento;
 import padaria.com.example.padaria.entity.Pedido;
 import padaria.com.example.padaria.entity.Usuario;
 import padaria.com.example.padaria.enums.StatusPedido;
-import padaria.com.example.padaria.repository.PagamentoPedidoRepository;
+import padaria.com.example.padaria.repository.PagamentoRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("PagamentoController — Testes de Integração")
 class PagamentoControllerTest extends IntegrationTestBase {
 
-    @Autowired private PagamentoPedidoRepository pagamentoPedidoRepository;
+    @Autowired private PagamentoRepository pagamentoRepository;
 
     // ==================== REGISTRAR ====================
 
@@ -209,7 +209,7 @@ class PagamentoControllerTest extends IntegrationTestBase {
         pagamento.setPedido(pedido);
         pagamento.setValor(valor);
         pagamento.setRegistradoPor(registradoPor);
-        return pagamentoPedidoRepository.save(pagamento);
+        return pagamentoRepository.save(pagamento);
     }
 
     private Pagamento criarPagamentoInvalidoNoBanco(Pedido pedido, Usuario registradoPor, BigDecimal valor) {
@@ -220,6 +220,6 @@ class PagamentoControllerTest extends IntegrationTestBase {
         pagamento.setValido(false);
         pagamento.setInvaliadoEm(LocalDateTime.now());
         pagamento.setInvaliadoPor(registradoPor);
-        return pagamentoPedidoRepository.save(pagamento);
+        return pagamentoRepository.save(pagamento);
     }
 }

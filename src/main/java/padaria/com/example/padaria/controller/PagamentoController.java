@@ -9,19 +9,22 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import padaria.com.example.padaria.dto.ResponseApi;
+import padaria.com.example.padaria.dto.pagamento.PagamentoFiltroDTO;
 import padaria.com.example.padaria.dto.pedido.PagamentoRequestDTO;
 import padaria.com.example.padaria.dto.pedido.PagamentoResponseDTO;
+import padaria.com.example.padaria.dto.pedido.PedidoFiltroDTO;
+import padaria.com.example.padaria.dto.pedido.PedidoResponseDTO;
 import padaria.com.example.padaria.entity.Usuario;
 import padaria.com.example.padaria.exception.RecursoNaoEncontradoException;
 import padaria.com.example.padaria.repository.UsuarioRepository;
@@ -29,13 +32,30 @@ import padaria.com.example.padaria.service.IPagamentoService;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/pagamentos")
 @Tag(name = "Pagamentos", description = "Registro e gestão de pagamentos vinculados a pedidos")
 public class PagamentoController {
 
     private final IPagamentoService pagamentoService;
     private final UsuarioRepository usuarioRepository;
 
-    @PostMapping("/api/v1/pedidos/{pedidoId}/pagamentos")
+    @GetMapping
+    @Operation(
+            summary = "Listar pedidos",
+            description = "Retorna os pedidos cadastrados com suporte a filtros e paginação. Ordenação padrão: data de entrega mais urgente primeiro."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Token não informado ou inválido", content = @Content(schema = @Schema(hidden = true)))
+    })
+    public ResponseEntity<ResponseApi<Page<PagamentoResponseDTO>>> listar(
+            @ModelAttribute PagamentoFiltroDTO filtro,
+            @PageableDefault(sort = "dataHoraEntrega", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        return ResponseEntity.ok(ResponseApi.ok("Pedidos listados com sucesso.", IPagamentoService.listar(filtro, pageable)));
+    }
+
+    @PostMapping("/{pedidoId}/")
     @Operation(
         summary = "Registrar pagamento",
         description = "Registra um novo pagamento para o pedido. A soma dos pagamentos válidos não pode ultrapassar o valor total do pedido. Pedidos cancelados não aceitam novos pagamentos."
@@ -57,7 +77,7 @@ public class PagamentoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ResponseApi.ok("Pagamento registrado com sucesso.", pagamento));
     }
 
-    @PatchMapping("/api/v1/pagamentos/{id}/invalidar")
+    @PatchMapping("/{id}/invalidar")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     @Operation(
         summary = "Invalidar pagamento",

@@ -1,8 +1,11 @@
 package padaria.com.example.padaria.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import padaria.com.example.padaria.dto.pagamento.PagamentoFiltroDTO;
 import padaria.com.example.padaria.dto.pedido.PagamentoRequestDTO;
 import padaria.com.example.padaria.dto.pedido.PagamentoResponseDTO;
 import padaria.com.example.padaria.entity.Pagamento;
@@ -10,8 +13,7 @@ import padaria.com.example.padaria.entity.Usuario;
 import padaria.com.example.padaria.exception.NegocioException;
 import padaria.com.example.padaria.exception.RecursoNaoEncontradoException;
 import padaria.com.example.padaria.mapper.PedidoMapper;
-import padaria.com.example.padaria.repository.PagamentoPedidoRepository;
-import padaria.com.example.padaria.repository.PedidoRepository;
+import padaria.com.example.padaria.repository.PagamentoRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -20,9 +22,16 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class PagamentoServiceImpl implements IPagamentoService {
 
-    private final PedidoRepository pedidoRepository;
-    private final PagamentoPedidoRepository pagamentoRepository;
+    private final PagamentoRepository pedidoRepository;
+    private final PagamentoRepository pagamentoRepository;
     private final PedidoMapper pedidoMapper;
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PagamentoResponseDTO> listar(PagamentoFiltroDTO filtro, Pageable pageable) {
+        return pagamentoRepository.findAll(PagamentoFilterSpec.comFiltros(filtro), pageable)
+                .map(pedidoMapper::toResponseDTO);
+    }
 
     @Override
     @Transactional

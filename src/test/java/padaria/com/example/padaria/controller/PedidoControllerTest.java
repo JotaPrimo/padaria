@@ -9,7 +9,7 @@ import padaria.com.example.padaria.entity.Pagamento;
 import padaria.com.example.padaria.entity.Pedido;
 import padaria.com.example.padaria.entity.Usuario;
 import padaria.com.example.padaria.enums.StatusPedido;
-import padaria.com.example.padaria.repository.PagamentoPedidoRepository;
+import padaria.com.example.padaria.repository.PagamentoRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("PedidoController — Testes de Integração")
 class PedidoControllerTest extends IntegrationTestBase {
 
-    @Autowired private PagamentoPedidoRepository pagamentoPedidoRepository;
+    @Autowired private PagamentoRepository pagamentoRepository;
 
     // ==================== LISTAR ====================
 
@@ -290,7 +290,7 @@ class PedidoControllerTest extends IntegrationTestBase {
         pagamento.setPedido(pedidoSalvo);
         pagamento.setValor(new BigDecimal("100.00"));
         pagamento.setRegistradoPor(usuario);
-        pagamentoPedidoRepository.save(pagamento);
+        pagamentoRepository.save(pagamento);
 
         return pedidoSalvo;
     }

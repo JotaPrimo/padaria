@@ -18,7 +18,7 @@ import padaria.com.example.padaria.enums.Role;
 import padaria.com.example.padaria.enums.StatusPedido;
 import padaria.com.example.padaria.exception.NegocioException;
 import padaria.com.example.padaria.exception.RecursoNaoEncontradoException;
-import padaria.com.example.padaria.repository.PagamentoPedidoRepository;
+import padaria.com.example.padaria.repository.PagamentoRepository;
 import padaria.com.example.padaria.repository.PedidoRepository;
 import padaria.com.example.padaria.repository.UsuarioRepository;
 
@@ -35,7 +35,7 @@ class PedidoServiceTest {
 
     @Autowired private IPedidoService pedidoService;
     @Autowired private PedidoRepository pedidoRepository;
-    @Autowired private PagamentoPedidoRepository pagamentoPedidoRepository;
+    @Autowired private PagamentoRepository pagamentoRepository;
     @Autowired private UsuarioRepository usuarioRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
@@ -259,7 +259,7 @@ class PedidoServiceTest {
         pagamento.setPedido(pedidoSalvo);
         pagamento.setValor(new BigDecimal("100.00"));
         pagamento.setRegistradoPor(usuario);
-        pagamentoPedidoRepository.save(pagamento);
+        pagamentoRepository.save(pagamento);
 
         return pedidoSalvo;
     }

@@ -37,11 +37,13 @@ public class Pagamento {
     @JoinColumn(name = "registrado_por", nullable = false, updatable = false)
     private Usuario registradoPor;
 
+    private Boolean  adiantamento = false;
+
     @Column(name = "data_registro", nullable = false, updatable = false)
     private LocalDateTime dataRegistro;
 
     @Column(nullable = false)
-    private boolean valido = true;
+    private Boolean  valido = true;
 
     @Column(name = "invaliadoEm")
     private LocalDateTime invaliadoEm;

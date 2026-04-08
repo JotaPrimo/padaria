@@ -20,7 +20,7 @@ import padaria.com.example.padaria.enums.StatusPedido;
 import padaria.com.example.padaria.exception.NegocioException;
 import padaria.com.example.padaria.exception.RecursoNaoEncontradoException;
 import padaria.com.example.padaria.mapper.PedidoMapper;
-import padaria.com.example.padaria.repository.PagamentoPedidoRepository;
+import padaria.com.example.padaria.repository.PagamentoRepository;
 import padaria.com.example.padaria.repository.PedidoRepository;
 import padaria.com.example.padaria.utils.StringValidator;
 
@@ -36,7 +36,7 @@ import java.util.List;
 public class PedidoServiceImpl implements IPedidoService {
 
     private final PedidoRepository pedidoRepository;
-    private final PagamentoPedidoRepository pagamentoPedidoRepository;
+    private final PagamentoRepository pagamentoRepository;
     private final PedidoMapper pedidoMapper;
 
     @Override
@@ -72,7 +72,7 @@ public class PedidoServiceImpl implements IPedidoService {
         } else {
             pagamentoInicial.setValor(dto.getValorAdiantamento());
         }
-        pagamentoPedidoRepository.save(pagamentoInicial);
+        pagamentoRepository.save(pagamentoInicial);
 
         return pedidoMapper.toResponseDTO(pedidoRepository.findById(pedidoSalvo.getId()).orElseThrow());
     }
@@ -178,7 +178,7 @@ public class PedidoServiceImpl implements IPedidoService {
 
     private static void checarEstorno(PedidoCancelamentoDTO dto, Pedido pedido) {
         BigDecimal totalPago = pedido.getPagamentos().stream()
-                .filter(Pagamento::isValido)
+                .filter(Pagamento::getValido)
                 .map(Pagamento::getValor)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
